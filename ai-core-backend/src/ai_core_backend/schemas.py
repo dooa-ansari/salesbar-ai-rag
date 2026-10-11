@@ -1,0 +1,151 @@
+"""Request/response shapes for the graph API, mirroring the frontend's React
+Flow graph shape (see admin-panel/src/graph.ts)."""
+
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+# Generous but finite bounds on free-text input: large enough that no
+# legitimate graph/query hits them, small enough that one request can't
+# stuff megabytes of text into Neo4j or an OpenRouter call.
+_SHORT_TEXT = 200
+_MEDIUM_TEXT = 2_000
+_LONG_TEXT = 20_000
+
+
+class Position(BaseModel):
+    x: float
+    y: float
+
+
+class NodeProperty(BaseModel):
+    name: str = Field(max_length=_SHORT_TEXT)
+    value: str = Field(max_length=_MEDIUM_TEXT)
+
+
+class GraphNodeData(BaseModel):
+    name: str = Field(max_length=_SHORT_TEXT)
+    type: str = Field(max_length=_SHORT_TEXT)
+    description: str | None = Field(default=None, max_length=_MEDIUM_TEXT)
+    properties: list[NodeProperty] = Field(default=[], max_length=200)
+
+
+class GraphNode(BaseModel):
+    id: str = Field(max_length=_SHORT_TEXT)
+    type: str = Field(max_length=_SHORT_TEXT)
+    position: Position
+    data: GraphNodeData
+    # Length of the stored embedding vector, not the vector itself. Response-only.
+    embeddingDimensions: int | None = None
+
+
+class GraphEdge(BaseModel):
+    id: str = Field(max_length=_SHORT_TEXT)
+    source: str = Field(max_length=_SHORT_TEXT)
+    target: str = Field(max_length=_SHORT_TEXT)
+    relationship: str = Field(default="", max_length=_SHORT_TEXT)
+    bend: Position | None = None
+    # Which node handle the edge is attached to (e.g. "+" vs the "↑" reverse-link).
+    sourceHandle: str | None = Field(default=None, max_length=_SHORT_TEXT)
+    targetHandle: str | None = Field(default=None, max_length=_SHORT_TEXT)
+
+
+class GraphPayload(BaseModel):
+    nodes: list[GraphNode] = Field(max_length=5_000)
+    edges: list[GraphEdge] = Field(max_length=20_000)
+
+
+class SaveGraphRequest(GraphPayload):
+    name: str = Field(max_length=_SHORT_TEXT)
+
+
+class NamedGraphPayload(GraphPayload):
+    id: str
+    name: str
+    # Humanized whole-graph description for viewing (separate from per-node
+    # embedding text). None until "Generate text" has been used.
+    text: str | None = None
+
+
+class SaveGraphResponse(BaseModel):
+    message: str
+    status: str
+    id: str
+    name: str
+    nodes: int
+    edges: int
+
+
+class SavedGraphSummary(BaseModel):
+    id: str
+    name: str
+    updatedAt: str
+    nodes: int
+    edges: int
+
+
+class SaveTextRequest(BaseModel):
+    text: str = Field(max_length=_LONG_TEXT)
+
+
+class SaveTextResponse(BaseModel):
+    status: str
+    message: str
+
+
+class NodeText(BaseModel):
+    """One node's embedding input: its id and its humanized text."""
+
+    id: str = Field(max_length=_SHORT_TEXT)
+    # The embedding model's own input limit is ~512 tokens (see
+    # openrouter_client.EMBEDDING_MODEL) — this is a generous superset of that.
+    text: str = Field(max_length=_MEDIUM_TEXT)
+
+
+class GenerateEmbeddingsRequest(BaseModel):
+    nodes: list[NodeText] = Field(max_length=5_000)
+
+
+class GenerateEmbeddingsResponse(BaseModel):
+    status: str
+    message: str
+    count: int
+    dimensions: int
+
+
+class SearchRequest(BaseModel):
+    query: str = Field(max_length=_MEDIUM_TEXT)
+    # Bounded so a client can't force an extremely expensive Neo4j vector
+    # overfetch (search_graph_nodes multiplies this by 10) or a negative
+    # Cypher LIMIT, which Neo4j rejects with an unhandled error.
+    limit: int = Field(default=5, ge=1, le=50)
+
+
+class RelationshipFact(BaseModel):
+    """One edge touching a matched node, read live from Neo4j at search time."""
+
+    relationship: str
+    direction: Literal["outgoing", "incoming"]
+    otherId: str
+    otherName: str
+
+
+class SearchResultNode(BaseModel):
+    id: str
+    name: str
+    type: str
+    description: str | None = None
+    properties: list[NodeProperty] = []
+    # Cosine similarity between the query and this node, 1.0 = identical.
+    score: float
+    # The text actually embedded for this node (attributes only).
+    embeddingText: str | None = None
+    # This node's edges, fetched fresh from Neo4j for this search.
+    relationships: list[RelationshipFact] = []
+
+
+class SearchResponse(BaseModel):
+    query: str
+    results: list[SearchResultNode]
+    # None if there were no results, or the LLM call failed.
+    answer: str | None = None

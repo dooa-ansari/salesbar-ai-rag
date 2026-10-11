@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  /* Blue: primary brand color */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-300: #93c5fd;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+
+  /* Green: secondary / success color */
+  --color-secondary-50: #f0fdf4;
+  --color-secondary-100: #dcfce7;
+  --color-secondary-300: #86efac;
+  --color-secondary-500: #22c55e;
+  --color-secondary-600: #16a34a;
+  --color-secondary-700: #15803d;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}

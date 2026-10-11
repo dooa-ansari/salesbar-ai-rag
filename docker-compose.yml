@@ -1,0 +1,66 @@
+# SECURITY: nothing in this stack has authentication — not the backend API,
+# not the frontend. Every port below is published to 0.0.0.0 (reachable from
+# outside this machine, not just localhost) and Neo4j falls back to a
+# well-known placeholder password if NEO4J_PASSWORD isn't set in .env.
+# That's fine for local development, but do not run this on a host whose
+# ports are reachable from an untrusted network (a cloud VM with open
+# inbound rules, a shared LAN, etc.) without putting it behind your own
+# auth/VPN/reverse proxy — anyone who can reach these ports can read, edit
+# or delete every saved graph, browse the Neo4j database directly, and run
+# up your OpenRouter bill.
+services:
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme-please-set-a-password}
+    ports:
+      - "${NEO4J_HTTP_PORT:-7474}:7474"
+      - "${NEO4J_BOLT_PORT:-7687}:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  ai-core-backend:
+    build: ./ai-core-backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-changeme-please-set-a-password}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    build: ./admin-panel
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      ai-core-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ecommerce:
+    build: ./use-case-ecommerce
+    ports:
+      - "${ECOMMERCE_PORT:-3001}:80"
+    depends_on:
+      ai-core-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
