@@ -10,12 +10,12 @@ import httpx
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
-# Free-tier text embedding model, up to 512 tokens of input.
-EMBEDDING_MODEL = "liquid/lfm-2.5-embedding-350m:free"
-EMBEDDING_DIMENSIONS = 1024
+EMBEDDING_MODEL = os.environ.get(
+    "OPENROUTER_EMBEDDING_MODEL", "liquid/lfm-2.5-embedding-350m:free"
+)
+EMBEDDING_DIMENSIONS = int(os.environ.get("EMBEDDING_DIMENSIONS", "1024"))
 
-# Free-tier chat model, used to synthesize an answer from retrieved nodes.
-CHAT_MODEL = "liquid/lfm-2.5-2.6b:free"
+CHAT_MODEL = os.environ.get("OPENROUTER_CHAT_MODEL", "liquid/lfm-2.5-2.6b:free")
 
 
 class OpenRouterError(RuntimeError):

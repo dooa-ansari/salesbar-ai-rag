@@ -160,6 +160,9 @@ Set in `.env` (gitignored):
 |---|---|---|
 | `NEO4J_PASSWORD` | *(weak placeholder)* | **Set this.** See Security above. |
 | `OPENROUTER_API_KEY` | *(empty)* | Needed for "Generate embeddings" and search; rest of the app works without it. |
+| `OPENROUTER_EMBEDDING_MODEL` | `liquid/lfm-2.5-embedding-350m:free` | Embedding model used for node vectors. |
+| `OPENROUTER_CHAT_MODEL` | `liquid/lfm-2.5-2.6b:free` | Chat model that synthesizes answers. |
+| `EMBEDDING_DIMENSIONS` | `1024` | Output size of the embedding model; sets the Neo4j vector index size. If you change it on an existing database, drop the vector index and regenerate embeddings. |
 | `BACKEND_PORT` | `8000` | Host port for the AI core backend API. |
 | `FRONTEND_PORT` | `3000` | Host port for the admin panel. |
 | `NEO4J_HTTP_PORT` | `7474` | Host port for the Neo4j Browser. |
