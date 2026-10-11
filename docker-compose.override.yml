@@ -46,15 +46,3 @@ services:
       # above — which would otherwise hide it behind the host's node_modules
       # (or nothing, if it hasn't been npm-installed on the host at all).
       - /app/node_modules
-
-  ecommerce:
-    build:
-      context: ./use-case-ecommerce
-      target: dev
-    ports: !override
-      - "${ECOMMERCE_PORT:-3001}:5173"
-    environment:
-      - VITE_DEV_API_PROXY_TARGET=http://ai-core-backend:8000
-    volumes:
-      - ./use-case-ecommerce:/app
-      - /app/node_modules

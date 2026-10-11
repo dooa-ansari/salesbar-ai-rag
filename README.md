@@ -1,25 +1,30 @@
-# GraphRAG Chat System
+# Salesbar AI RAG
 
-[![Tests](https://github.com/dooa-ansari/GraphRag-Chats/actions/workflows/test.yml/badge.svg)](https://github.com/dooa-ansari/GraphRag-Chats/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
 ![Neo4j](https://img.shields.io/badge/Neo4j-5-008CC1?logo=neo4j&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-Build a knowledge graph visually, then ask it questions in plain English.
+A drop-in replacement for the regular search bar. Instead of a dead-end
+"no results found", Salesbar always has something useful to say:
 
-A full-stack app for building a graph of entities and relationships by hand
-(name, type, description, key/value properties, labeled relationships),
-embedding each node for semantic search, and querying it through a chat
-panel that combines **vector search** (finds the nodes that match the
-meaning of your question) with a **live Neo4j traversal** (reads that
-node's actual current relationships, fresh, at search time — not baked
-into the embedding) to answer questions grounded in the graph.
+- **Results exist** — it shows them.
+- **Close matches or popular items exist** — it shows similar or popular
+  items instead.
+- **Nothing fits** — it acts like a salesman: understands what the shopper
+  is after and guides them toward the best alternative in plain language.
 
-![Demo: building a small graph, generating embeddings, and asking it a question](docs/demo.gif)
+Under the hood, the catalog is modeled as a knowledge graph (entities,
+attributes and labeled relationships) stored in Neo4j. Each question is
+answered with **vector search** (finds the nodes that match the meaning of
+the query) combined with a **live Neo4j traversal** (reads those nodes'
+actual, current relationships at search time — not baked into the
+embedding), and an LLM turns the grounded result into the answer.
 
-*Building a 6-node "Startup team" graph, then asking "Who should I ask about a payments bug?". The canvas highlights the nodes and relationships the answer came from. (Recorded with sample data, sped up 1.5x.)*
+This repository contains the **AI core backend** (FastAPI + Neo4j + OpenRouter)
+and the **admin panel**, a visual editor for building and testing the graph
+that powers the search.
 
 ## Features
 
@@ -30,27 +35,19 @@ into the embedding) to answer questions grounded in the graph.
 - **Generate embeddings** — one vector per node (attributes only), via a free OpenRouter model, stored directly on each `:GraphNode`.
 - **Hybrid search** — a chat panel where each question does a Neo4j vector search for semantically matching nodes, then a live Cypher traversal for their actual relationships, then an LLM synthesizes an answer grounded in both. The canvas highlights exactly what was matched vs. traversed.
 - **Autosave** — a 15s debounced countdown saves in-progress edits so you don't lose work.
-- **Seed data** — a fresh, empty database is automatically populated with 6 example graphs on first run (see below), so there's something to open and search immediately.
-- **Use-case demo** — [`use-case-ecommerce`](use-case-ecommerce) is a standalone storefront with a single search bar, built against the "Grocery Store Catalog" seed graph, showing hybrid search applied to a real use case.
+- **Seed data** — graphs listed in `SEED_GRAPHS` are loaded automatically into an empty database on first run (currently none; see below).
 
-## Example seed graphs
+## Seed data
 
-Loaded automatically once, only if the database is completely empty (see
-`ai-core-backend/src/ai_core_backend/seed_data.py`):
-
-| Graph | Size | Try asking |
-|---|---|---|
-| Smith Family Tree | 10 nodes / 30 edges | "who is the grandfather of Emily?" |
-| Grocery Store Catalog | 73 / 90 | "gmo free, seed oil free, chocolate flavour protein bar without any sugar" |
-| Nimbus Cloud Storage FAQs | 52 / 79 | "I'm on the free plan and ran out of storage, can I still share links that don't expire?" |
-| Alex Rivera — Resume | 48 / 98 | "find an engineer with Python and AWS experience who built a RAG system" |
-| City Library Catalog | 45 / 68 | "a fantasy novel under 450 pages that's available right now, by an award-winning author" |
-| Movie Recommendation Catalog | 53 / 116 | "a mind-bending sci-fi movie under two hours on StreamVault" |
+On first run, if the database has no saved graphs, every graph in
+`SEED_GRAPHS` (`ai-core-backend/src/ai_core_backend/seed_data.py`) is saved
+automatically. The list is currently empty; add `SaveGraphRequest` entries
+there to ship example graphs.
 
 ## Tech stack
 
-- **Frontend**: React 19, TypeScript, Vite, React Flow, Tailwind CSS v4, React Router
-- **Backend**: FastAPI, async Neo4j driver, Pydantic
+- **Admin panel**: React 19, TypeScript, Vite, React Flow, Tailwind CSS v4, React Router
+- **AI core backend**: FastAPI, async Neo4j driver, Pydantic
 - **Database**: Neo4j 5 (Community Edition) — graph storage + native vector index
 - **LLM**: [OpenRouter](https://openrouter.ai) — free-tier models for embeddings and chat completions
 - **Infra**: Docker Compose (prod-style build + a dev override with hot reload on both services)
@@ -60,27 +57,26 @@ Loaded automatically once, only if the database is completely empty (see
 Requires Docker and Docker Compose.
 
 ```bash
-git clone https://github.com/dooa-ansari/GraphRag-Chats.git
-cd GraphRag-Chats
-cp .env.example .env
-# Open .env and set a real NEO4J_PASSWORD (required — see Security below).
-# OPENROUTER_API_KEY is optional: get a free key at https://openrouter.ai/keys
-# if you want "Generate embeddings"/search to work; the rest of the app
-# works fine without one.
+git clone https://github.com/dooa-ansari/salesbar-ai-rag.git
+cd salesbar-ai-rag
+
+# Create a .env file next to docker-compose.yml with at least:
+#   NEO4J_PASSWORD=<a real password>   (required — see Security below)
+#   OPENROUTER_API_KEY=<your key>      (optional: https://openrouter.ai/keys;
+#                                       needed for "Generate embeddings"/search)
 
 docker compose up --build
 ```
 
 Then open:
 
-- **App**: http://localhost:3000
-- **E-commerce search demo**: http://localhost:3001
-- **Backend API**: http://localhost:8000 (docs at `/docs`)
+- **Admin panel**: http://localhost:3000
+- **AI core backend API**: http://localhost:8000 (docs at `/docs`)
 - **Neo4j Browser**: http://localhost:7474
 
 `docker compose up` (no extra flags) automatically layers
-`docker-compose.override.yml` on top, which bind-mounts both frontends'
-source and runs them in hot-reload mode — edit a file locally and it shows
+`docker-compose.override.yml` on top, which bind-mounts the admin panel's
+and backend's source and runs them in hot-reload mode — edit a file locally and it shows
 up without rebuilding. To run the plain, production-built images instead:
 `docker compose -f docker-compose.yml up`.
 
@@ -94,7 +90,7 @@ uv sync
 uv run uvicorn ai_core_backend.main:app --reload
 ```
 
-**Frontend**:
+**Admin panel**:
 
 ```bash
 cd admin-panel
@@ -108,15 +104,13 @@ npm run dev
 # Backend — pytest, fully mocked (no real Neo4j/OpenRouter needed)
 cd ai-core-backend && uv run pytest
 
-# Frontend — Vitest unit tests (pure logic, no DOM needed)
+# Admin panel — Vitest unit tests (pure logic, no DOM needed)
 cd admin-panel && npm run test
 
-# Frontend — Playwright E2E (spins up its own dev server, mocks the API)
+# Admin panel — Playwright E2E (spins up its own dev server, mocks the API)
 cd admin-panel && npm run test:e2e
 ```
 
-Both the backend and frontend unit-test suites run on every push via
-[`.github/workflows/test.yml`](.github/workflows/test.yml).
 
 ## Project structure
 
@@ -127,7 +121,7 @@ ai-core-backend/
     neo4j_client.py     Neo4j connection + Cypher
     openrouter_client.py  Embeddings/chat completions via OpenRouter
     schemas.py          Pydantic request/response models
-    seed_data.py         The 6 example graphs loaded on first run
+    seed_data.py         Graphs loaded on first run (currently empty)
   tests/                 pytest suite
 
 admin-panel/
@@ -139,21 +133,14 @@ admin-panel/
     *.test.ts            Vitest unit tests
   e2e/                   Playwright E2E tests
 
-use-case-ecommerce/         Standalone storefront search demo against the
-                               "Grocery Store Catalog" seed graph
-  src/
-    api.ts                   Backend API client (resolves the catalog by name)
-    App.tsx                  Search bar + results
-    components/              SearchBar, ProductCard
-
-docker-compose.yml           Base stack (neo4j, backend, frontend, ecommerce)
+docker-compose.yml           Base stack (neo4j, ai-core-backend, frontend)
 docker-compose.override.yml  Dev hot-reload (auto-applied by `docker compose up`)
 ```
 
 ## Security
 
 **This stack has no authentication** — not the backend API, not the
-frontend — and by default every port (Neo4j's 7474/7687, the backend's
+admin panel — and by default every port (Neo4j's 7474/7687, the backend's
 8000) is published to the host's `0.0.0.0`, not just `localhost`. That's
 fine for local development, but **do not** run it on a host whose ports are
 reachable from an untrusted network (a cloud VM with open inbound rules, a
@@ -167,15 +154,14 @@ at the top of `docker-compose.yml` for details.
 
 ## Environment variables
 
-Set in `.env` (copy from `.env.example`; gitignored):
+Set in `.env` (gitignored):
 
 | Variable | Default | Notes |
 |---|---|---|
 | `NEO4J_PASSWORD` | *(weak placeholder)* | **Set this.** See Security above. |
 | `OPENROUTER_API_KEY` | *(empty)* | Needed for "Generate embeddings" and search; rest of the app works without it. |
-| `BACKEND_PORT` | `8000` | Host port for the API. |
-| `FRONTEND_PORT` | `3000` | Host port for the app. |
-| `ECOMMERCE_PORT` | `3001` | Host port for the e-commerce search demo. |
+| `BACKEND_PORT` | `8000` | Host port for the AI core backend API. |
+| `FRONTEND_PORT` | `3000` | Host port for the admin panel. |
 | `NEO4J_HTTP_PORT` | `7474` | Host port for the Neo4j Browser. |
 | `NEO4J_BOLT_PORT` | `7687` | Host port for the Bolt protocol. |
 

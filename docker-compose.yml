@@ -53,14 +53,5 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  ecommerce:
-    build: ./use-case-ecommerce
-    ports:
-      - "${ECOMMERCE_PORT:-3001}:80"
-    depends_on:
-      ai-core-backend:
-        condition: service_healthy
-    restart: unless-stopped
-
 volumes:
   neo4j_data:
