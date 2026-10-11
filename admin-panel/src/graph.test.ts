@@ -68,6 +68,21 @@ describe('humanizeGraph / nodeEmbeddingTexts (shared describeNode logic)', () =>
     expect(text).not.toContain('should be skipped')
   })
 
+  it('describes numeric property values', () => {
+    const text = humanizeGraph([
+      node({
+        name: 'Bar',
+        type: 'Product',
+        properties: [
+          { name: 'price', type: 'float', value: 9.99 },
+          { name: 'stock', type: 'integer', value: 0 },
+        ],
+      }),
+    ])
+    expect(text).toContain("Bar's price is 9.99.")
+    expect(text).toContain("Bar's stock is 0.")
+  })
+
   it('treats a node with no name as having nothing to say', () => {
     expect(humanizeGraph([node({ name: '   ', type: 'Thing' })])).toBe('')
     expect(nodeEmbeddingTexts([node({ name: '', type: 'Thing' })])).toEqual([])

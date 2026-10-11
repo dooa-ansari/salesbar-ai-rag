@@ -39,7 +39,9 @@ def test_node_params_encodes_properties_as_json():
         )
     )
     params = _node_params(node)
-    assert json.loads(params["propertiesJson"]) == [{"name": "age", "value": "30"}]
+    assert json.loads(params["propertiesJson"]) == [
+        {"name": "age", "type": "string", "value": "30"}
+    ]
 
 
 def test_node_params_empty_properties_round_trips_to_empty_list():
@@ -70,3 +72,24 @@ def test_edge_params_passes_through_handles_and_relationship():
     assert params["relationship"] == "Father"
     assert params["sourceHandle"] == "link"
     assert params["targetHandle"] == "in-bottom"
+
+
+def test_node_params_keeps_numeric_properties_as_numbers():
+    node = GraphNode(
+        id="p1",
+        type="graph",
+        position=Position(x=0, y=0),
+        data=GraphNodeData(
+            name="Protein Bar",
+            type="Product",
+            properties=[
+                NodeProperty(name="stock", type="integer", value="12"),
+                NodeProperty(name="price", type="float", value="9.99"),
+            ],
+        ),
+    )
+    params = _node_params(node)
+    assert json.loads(params["propertiesJson"]) == [
+        {"name": "stock", "type": "integer", "value": 12},
+        {"name": "price", "type": "float", "value": 9.99},
+    ]

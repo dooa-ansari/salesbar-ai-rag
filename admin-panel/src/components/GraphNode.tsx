@@ -14,6 +14,7 @@ import {
   type GraphNodeData,
   type GraphNodeType,
   type NodeProperty,
+  type PropertyType,
 } from '../graph'
 
 const CHILD_GAP_Y = 160
@@ -46,7 +47,17 @@ function GraphNode({ id, data }: NodeProps<GraphNodeType>) {
     })
 
   const addProperty = () =>
-    update({ properties: [...data.properties, { name: '', value: '' }] })
+    update({ properties: [...data.properties, { name: '', type: 'string', value: '' }] })
+
+  const changePropertyType = (index: number, type: PropertyType) => {
+    const current = data.properties[index]
+    const value = String(current.value)
+    const keepsValue =
+      type === 'string' ||
+      (value.trim() !== '' &&
+        (type === 'float' ? Number.isFinite(Number(value)) : Number.isInteger(Number(value))))
+    updateProperty(index, { type, value: keepsValue ? value : '' })
+  }
 
   const removeProperty = (index: number) =>
     update({ properties: data.properties.filter((_, i) => i !== index) })
@@ -146,8 +157,22 @@ function GraphNode({ id, data }: NodeProps<GraphNodeType>) {
                 placeholder="Name"
                 aria-label={`Property ${index + 1} name`}
               />
+              <select
+                className={`${inputClass} w-auto shrink-0`}
+                value={property.type ?? 'string'}
+                onChange={(e) =>
+                  changePropertyType(index, e.target.value as PropertyType)
+                }
+                aria-label={`Property ${index + 1} type`}
+              >
+                <option value="string">Text</option>
+                <option value="integer">Integer</option>
+                <option value="float">Decimal</option>
+              </select>
               <input
                 className={inputClass}
+                type={property.type && property.type !== 'string' ? 'number' : 'text'}
+                step={property.type === 'integer' ? 1 : 'any'}
                 value={property.value}
                 onChange={(e) =>
                   updateProperty(index, { value: e.target.value })

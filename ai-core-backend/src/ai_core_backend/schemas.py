@@ -1,9 +1,10 @@
 """Request/response shapes for the graph API, mirroring the frontend's React
 Flow graph shape (see admin-panel/src/graph.ts)."""
 
+import math
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # Generous but finite bounds on free-text input: large enough that no
 # legitimate graph/query hits them, small enough that one request can't
@@ -18,9 +19,42 @@ class Position(BaseModel):
     y: float
 
 
+PropertyType = Literal["string", "integer", "float"]
+
+
+def _parse_integer(value: str | int | float) -> int:
+    if isinstance(value, float):
+        if not value.is_integer():
+            raise ValueError("integer property must be a whole number")
+        return int(value)
+    if isinstance(value, str):
+        return int(value.strip())
+    return value
+
+
+def _parse_float(value: str | int | float) -> float:
+    number = float(value.strip() if isinstance(value, str) else value)
+    if not math.isfinite(number):
+        raise ValueError("float property must be a finite number")
+    return number
+
+
 class NodeProperty(BaseModel):
     name: str = Field(max_length=_SHORT_TEXT)
-    value: str = Field(max_length=_MEDIUM_TEXT)
+    type: PropertyType = "string"
+    value: str | int | float
+
+    @model_validator(mode="after")
+    def _match_value_to_type(self):
+        if self.type == "integer":
+            self.value = _parse_integer(self.value)
+        elif self.type == "float":
+            self.value = _parse_float(self.value)
+        else:
+            self.value = str(self.value)
+            if len(self.value) > _MEDIUM_TEXT:
+                raise ValueError(f"string property is longer than {_MEDIUM_TEXT} characters")
+        return self
 
 
 class GraphNodeData(BaseModel):

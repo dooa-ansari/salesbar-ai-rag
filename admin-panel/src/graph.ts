@@ -2,9 +2,12 @@ import dagre from '@dagrejs/dagre'
 import { MarkerType, type Edge, type Node, type XYPosition } from '@xyflow/react'
 import { v4 as uuidv4 } from 'uuid'
 
+export type PropertyType = 'string' | 'integer' | 'float'
+
 export type NodeProperty = {
   name: string
-  value: string
+  type?: PropertyType
+  value: string | number
 }
 
 export type GraphNodeData = {
@@ -167,7 +170,7 @@ function describeNode({ name, type, description, properties }: GraphNodeData): s
   }
   for (const property of properties) {
     const propertyName = property.name.trim()
-    const propertyValue = property.value.trim()
+    const propertyValue = String(property.value).trim()
     if (propertyName && propertyValue) {
       sentences.push(`${trimmedName}'s ${propertyName} is ${propertyValue}.`)
     }

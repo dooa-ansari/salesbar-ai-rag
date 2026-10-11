@@ -1,4 +1,4 @@
-import type { GraphNodeType } from './graph'
+import type { GraphNodeType, NodeProperty } from './graph'
 
 // Same-origin path: nginx.conf proxies it to the backend in the built app,
 // and vite.config.ts's dev server proxy does the same for `npm run dev`.
@@ -73,7 +73,7 @@ export type SearchResultNode = {
   name: string
   type: string
   description?: string | null
-  properties: Array<{ name: string; value: string }>
+  properties: NodeProperty[]
   score: number
   // Fetched live from Neo4j at search time, not from the embedding.
   relationships: RelationshipFact[]
