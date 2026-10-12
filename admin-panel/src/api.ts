@@ -41,6 +41,7 @@ export type SavedGraphSummary = {
 export type NamedGraphNode = Pick<GraphNodeType, 'id' | 'type' | 'position' | 'data'> & {
   // Set once "Generate embeddings" has stored a vector for this node.
   embeddingDimensions?: number | null
+  catalogId?: string | null
 }
 
 export type NamedGraphPayload = {
@@ -73,6 +74,7 @@ export type RelationshipFact = {
 
 export type SearchResultNode = {
   id: string
+  catalogId?: string | null
   name: string
   type: string
   description?: string | null

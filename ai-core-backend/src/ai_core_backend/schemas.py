@@ -71,6 +71,7 @@ class GraphNode(BaseModel):
     data: GraphNodeData
     # Length of the stored embedding vector, not the vector itself. Response-only.
     embeddingDimensions: int | None = None
+    catalogId: str | None = None
 
 
 class GraphEdge(BaseModel):
@@ -169,6 +170,7 @@ class RelationshipFact(BaseModel):
 
 class SearchResultNode(BaseModel):
     id: str
+    catalogId: str | None = None
     name: str
     type: str
     description: str | None = None

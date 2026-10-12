@@ -56,8 +56,10 @@ NODE_EMBEDDING_INDEX = "node_embedding_index"
 
 
 async def ensure_vector_index() -> None:
-    """Idempotent: creates the vector index on :GraphNode(embedding) if it
-    doesn't exist yet. Requires Neo4j 5.13+ (works on Community Edition)."""
+    """Idempotent: creates the vector index on :GraphNode(embedding) and the
+    :GraphNode(catalogId) index if they don't exist yet, and stamps catalogId
+    on nodes saved before it existed. Requires Neo4j 5.13+ (works on
+    Community Edition)."""
     async with get_driver().session() as session:
         await session.run(
             f"""
@@ -69,6 +71,17 @@ async def ensure_vector_index() -> None:
             }}}}
             """,
             dimensions=EMBEDDING_DIMENSIONS,
+        )
+        await session.run(
+            "CREATE INDEX graphnode_catalog_id IF NOT EXISTS "
+            "FOR (n:GraphNode) ON (n.catalogId)"
+        )
+        await session.run(
+            """
+            MATCH (g:SavedGraph)-[:HAS_NODE]->(n:GraphNode)
+            WHERE n.catalogId IS NULL
+            SET n.catalogId = g.id
+            """
         )
 
 
@@ -134,9 +147,17 @@ async def _save_graph_tx(
     )
     await tx.run(
         """
+        MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(n:GraphNode)
+        WHERE n.catalogId IS NULL
+        SET n.catalogId = $graphId
+        """,
+        graphId=graph_id,
+    )
+    await tx.run(
+        """
         MATCH (g:SavedGraph {id: $graphId})
         UNWIND $nodes AS node
-        MERGE (n:GraphNode {id: node.id})
+        MERGE (n:GraphNode {catalogId: $graphId, id: node.id})
         SET n.reactFlowType = node.reactFlowType,
             n.positionX = node.positionX,
             n.positionY = node.positionY,
@@ -251,6 +272,7 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
         """
         MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(n:GraphNode)
         RETURN n.id AS id,
+               n.catalogId AS catalogId,
                n.reactFlowType AS reactFlowType,
                n.positionX AS positionX,
                n.positionY AS positionY,
@@ -276,6 +298,7 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
                     for item in json.loads(record["propertiesJson"] or "[]")
                 ],
             ),
+            catalogId=record["catalogId"],
             embeddingDimensions=record["embeddingDimensions"],
         )
         async for record in node_records
@@ -400,14 +423,15 @@ async def _search_graph_nodes_tx(
     if exists is None:
         return None
 
-    # The index spans every graph, so over-fetch then filter to this one.
+    # The index spans every catalog, so over-fetch then filter to this one.
     overfetch = max(limit * 10, 50)
     records = await tx.run(
         """
         CALL db.index.vector.queryNodes($indexName, $overfetch, $queryEmbedding)
         YIELD node, score
-        MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(node)
+        WHERE node.catalogId = $graphId
         RETURN node.id AS id,
+               node.catalogId AS catalogId,
                node.name AS name,
                node.entityType AS type,
                node.description AS description,
@@ -426,6 +450,7 @@ async def _search_graph_nodes_tx(
     return [
         SearchResultNode(
             id=record["id"],
+            catalogId=record["catalogId"],
             name=record["name"],
             type=record["type"],
             description=record["description"],
