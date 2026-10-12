@@ -78,6 +78,7 @@ class GraphEdge(BaseModel):
     source: str = Field(max_length=_SHORT_TEXT)
     target: str = Field(max_length=_SHORT_TEXT)
     relationship: str = Field(default="", max_length=_SHORT_TEXT)
+    key: str | None = Field(default=None, max_length=_SHORT_TEXT)
     bend: Position | None = None
     # Which node handle the edge is attached to (e.g. "+" vs the "↑" reverse-link).
     sourceHandle: str | None = Field(default=None, max_length=_SHORT_TEXT)

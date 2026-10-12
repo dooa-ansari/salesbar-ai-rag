@@ -93,6 +93,7 @@ def _edge_params(edge: GraphEdge) -> dict:
         "source": edge.source,
         "target": edge.target,
         "relationship": edge.relationship,
+        "key": edge.key,
         "bendX": edge.bend.x if edge.bend else None,
         "bendY": edge.bend.y if edge.bend else None,
         "sourceHandle": edge.sourceHandle,
@@ -165,6 +166,7 @@ async def _save_graph_tx(
         MATCH (g)-[:HAS_NODE]->(target:GraphNode {id: edge.target})
         CREATE (source)-[r:RELATES_TO {id: edge.id}]->(target)
         SET r.relationship = edge.relationship,
+            r.key = edge.key,
             r.bendX = edge.bendX,
             r.bendY = edge.bendY,
             r.sourceHandle = edge.sourceHandle,
@@ -285,6 +287,7 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
                source.id AS source,
                target.id AS target,
                r.relationship AS relationship,
+               r.key AS key,
                r.bendX AS bendX,
                r.bendY AS bendY,
                r.sourceHandle AS sourceHandle,
@@ -298,6 +301,7 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
             source=record["source"],
             target=record["target"],
             relationship=record["relationship"] or "",
+            key=record["key"],
             bend=(
                 Position(x=record["bendX"], y=record["bendY"])
                 if record["bendX"] is not None and record["bendY"] is not None

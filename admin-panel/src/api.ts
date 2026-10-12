@@ -9,6 +9,7 @@ export type GraphExportEdge = {
   source: string
   target: string
   relationship: string
+  key?: string | null
   bend?: { x: number; y: number }
   sourceHandle?: string | null
   targetHandle?: string | null

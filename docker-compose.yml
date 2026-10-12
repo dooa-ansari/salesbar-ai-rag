@@ -37,7 +37,7 @@ services:
       - OPENROUTER_EMBEDDING_MODEL=${OPENROUTER_EMBEDDING_MODEL:-liquid/lfm-2.5-embedding-350m:free}
       - OPENROUTER_CHAT_MODEL=${OPENROUTER_CHAT_MODEL:-liquid/lfm-2.5-2.6b:free}
       - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-1024}
-      - SEED_PRODUCTS_CSV=/seed/products.csv
+      - SEED_CATALOG=/seed/data/clothes/catalog.yaml
     volumes:
       - ./:/seed:ro
     depends_on:

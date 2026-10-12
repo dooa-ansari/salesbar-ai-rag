@@ -1,0 +1,70 @@
+name: Clothes Catalog
+
+source:
+  file: ../../products.csv
+  format: csv
+
+product:
+  node_type: Product
+  name_column: name
+  id_column: id
+  description_column: description
+  properties:
+    - {column: id, name: sku, type: string}
+    - {column: price, name: price, type: float}
+    - {column: currency, name: currency, type: string}
+    - {column: image_url, name: image url, type: string}
+    - {column: product_url, name: product url, type: string}
+
+node_types:
+  Product: {role: product}
+  Brand: {role: brand}
+  Category: {role: category}
+  Material: {role: attribute}
+  Colour: {role: attribute}
+  Size: {role: attribute}
+  Feature: {role: attribute}
+  Restriction: {role: restriction}
+
+relationships:
+  IN_CATEGORY: {label: in category, from: Product, to: Category}
+  IS_MADE_BY: {label: is made by, from: Product, to: Brand}
+  IS_MADE_OF: {label: is made of, from: Product, to: Material}
+  COMES_IN: {label: comes in, from: Product, to: Colour}
+  IS_AVAILABLE_IN_SIZE: {label: is available in size, from: Product, to: Size}
+  HAS_FEATURE: {label: has feature, from: Product, to: Feature}
+  IS_FREE_FROM: {label: is free from, from: Product, to: Restriction}
+
+columns:
+  category: {node_type: Category, relationship: IN_CATEGORY}
+  brand: {node_type: Brand, relationship: IS_MADE_BY}
+  materials: {node_type: Material, relationship: IS_MADE_OF, separator: "|", as_property: materials}
+  colour: {node_type: Colour, relationship: COMES_IN, as_property: colour}
+  flags: {node_type: Feature, relationship: HAS_FEATURE, separator: "|", as_property: flags}
+  free_from: {node_type: Restriction, relationship: IS_FREE_FROM, separator: "|", strip_suffix: _free, as_property: free from}
+  sizes_in_stock: {node_type: Size, relationship: IS_AVAILABLE_IN_SIZE, separator: "|", counts: true, stock_property_prefix: stock}
+
+constraints:
+  safety:
+    node_types: [Material, Restriction]
+  soft:
+    node_types: [Size, Colour, Brand, Feature]
+    properties: [price]
+
+synonyms:
+  - phrases: [no wool, wool free, without wool, not wool]
+    exclude: {node_type: Material, value: wool}
+  - phrases: [nickel free, nickel-free, no nickel, without nickel]
+    require: {node_type: Restriction, value: nickel_free}
+  - phrases: [latex free, latex-free, no latex, without latex]
+    require: {node_type: Restriction, value: latex_free}
+  - phrases: [vegan leather, faux leather, fake leather]
+    require: {node_type: Material, value: synthetic_leather}
+  - phrases: [waterproof, rain proof, rainproof, water resistant]
+    require: {node_type: Feature, value: waterproof}
+  - phrases: [organic cotton, organic]
+    require: {node_type: Feature, value: organic_cotton}
+  - phrases: [recycled, made from recycled materials]
+    require: {node_type: Feature, value: recycled}
+  - phrases: [vegan]
+    require: {node_type: Feature, value: vegan}

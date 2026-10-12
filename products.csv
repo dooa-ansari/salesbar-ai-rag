@@ -1,0 +1,57 @@
+id,name,category,image_type,brand,price,currency,colour,materials,flags,free_from,sizes_in_stock,description,image_url,product_url
+TS01,Everyday Tee,T-shirts,tshirt,Kindred,19,USD,white,cotton,,,S:6|M:8|L:5|XL:3,Soft everyday cotton T-shirt with a relaxed fit.,images/TS01.svg,/products/TS01
+TS02,Organic Crew Tee,T-shirts,tshirt,Kindred,29,USD,green,cotton,organic_cotton,,S:4|M:6|L:4|XL:2,Crew neck tee in certified organic cotton.,images/TS02.svg,/products/TS02
+TS03,Crew Tee Blend,T-shirts,tshirt,Kindred,29,USD,green,cotton|polyester,,,S:4|M:6|L:4|XL:2,Same cut as the Organic Crew Tee in a cotton-polyester blend.,images/TS03.svg,/products/TS03
+TS04,Merino Base Layer Tee,T-shirts,tshirt,Trailhaus,49,USD,grey,wool,,,S:3|M:4|L:3|XL:1,Fine merino wool tee for layering in the cold.,images/TS04.svg,/products/TS04
+TS05,Linen Summer Tee,T-shirts,tshirt,Oakline,34,USD,beige,linen,,,S:2|M:3|L:3|XL:2,Airy linen tee for hot days.,images/TS05.svg,/products/TS05
+TS06,Pop Graphic Tee,T-shirts,tshirt,Urbanloom,24,USD,pink,cotton,,,S:5|M:7|L:5|XL:3,Bold front print on a heavy cotton tee.,images/TS06.svg,/products/TS06
+TS07,Recycled Run Tee,T-shirts,tshirt,Trailhaus,27,USD,blue,polyester,recycled,,S:4|M:5|L:4|XL:2,Quick-dry running tee from recycled polyester.,images/TS07.svg,/products/TS07
+TS08,Bamboo Soft Tee,T-shirts,tshirt,Oakline,32,USD,black,bamboo_viscose,,,S:3|M:4|L:4|XL:2,Very soft bamboo viscose tee.,images/TS08.svg,/products/TS08
+TS09,Pocket Tee,T-shirts,tshirt,Stitchwell,22,USD,navy,cotton,,,S:5|M:6|L:4|XL:2,Classic cotton tee with a chest pocket.,images/TS09.svg,/products/TS09
+TS10,Classic V-Neck Tee,T-shirts,tshirt,Stitchwell,21,USD,black,cotton,,,S:4|M:0|L:3|XL:2,V-neck cotton tee. Medium is currently sold out.,images/TS10.svg,/products/TS10
+TS11,Oversized Boxy Tee,T-shirts,tshirt,Urbanloom,26,USD,purple,cotton,,,S:3|M:5|L:5|XL:3,Oversized boxy fit in heavy cotton.,images/TS11.svg,/products/TS11
+TS12,Merino Blend Tee,T-shirts,tshirt,Oakline,44,USD,navy,wool|polyester,,,S:2|M:3|L:3|XL:1,Merino and polyester blend that dries fast.,images/TS12.svg,/products/TS12
+TS13,Basic Value Tee 3-Pack Single,T-shirts,tshirt,Stitchwell,12,USD,white,cotton,,,S:9|M:9|L:9|XL:6,Budget everyday tee.,images/TS13.svg,/products/TS13
+TS14,Mystery Tee,T-shirts,tshirt,Urbanloom,18,USD,orange,,,,S:3|M:3|L:3|XL:3,Tee with no fabric information recorded yet.,images/TS14.svg,/products/TS14
+JE01,Straight Fit Jeans,Jeans,jeans,Stitchwell,59,USD,denim,cotton,,nickel_free,W30:5|W32:7|W34:6|W36:3,Classic straight jeans in mid-blue denim.,images/JE01.svg,/products/JE01
+JE02,Slim Fit Jeans,Jeans,jeans,Stitchwell,64,USD,black,cotton|elastane,,nickel_free,W30:4|W32:6|W34:6|W36:2,Slim jeans with a little stretch.,images/JE02.svg,/products/JE02
+JE03,Organic Denim Jeans,Jeans,jeans,Kindred,89,USD,denim,cotton,organic_cotton|vegan,nickel_free,W30:2|W32:4|W34:4|W36:2,"Jeans in organic cotton denim, no leather patch.",images/JE03.svg,/products/JE03
+JE04,Relaxed Carpenter Jeans,Jeans,jeans,Urbanloom,72,USD,brown,cotton,,,W30:3|W32:4|W34:4|W36:2,Relaxed carpenter fit with tool pocket.,images/JE04.svg,/products/JE04
+JE05,Stretch Skinny Jeans,Jeans,jeans,Urbanloom,54,USD,navy,cotton|elastane,,,W30:5|W32:5|W34:4|W36:1,Skinny fit with strong stretch.,images/JE05.svg,/products/JE05
+JE06,Wool Blend Winter Jeans,Jeans,jeans,Trailhaus,95,USD,grey,cotton|wool,,,W30:2|W32:3|W34:3|W36:1,Lined winter jeans with wool in the blend.,images/JE06.svg,/products/JE06
+JE07,Recycled Denim Jeans,Jeans,jeans,Kindred,79,USD,denim,cotton|polyester,recycled|vegan,nickel_free,W30:3|W32:5|W34:5|W36:2,Jeans with recycled fibres.,images/JE07.svg,/products/JE07
+JE08,Wide Leg Jeans,Jeans,jeans,Urbanloom,68,USD,beige,cotton,,,W30:3|W32:4|W34:3|W36:2,Wide-leg cut in beige denim.,images/JE08.svg,/products/JE08
+JE09,Budget Straight Jeans,Jeans,jeans,Stitchwell,39,USD,denim,cotton,,,W30:6|W32:8|W34:6|W36:4,Value straight jeans.,images/JE09.svg,/products/JE09
+JE10,Black Straight Jeans,Jeans,jeans,Stitchwell,59,USD,black,cotton,,nickel_free,W30:0|W32:0|W34:0|W36:0,Black straight jeans. Sold out in every size right now.,images/JE10.svg,/products/JE10
+JE11,Raw Selvedge Jeans,Jeans,jeans,Oakline,129,USD,navy,cotton,,nickel_free,W30:1|W32:2|W34:2|W36:1,Raw selvedge denim made to age well.,images/JE11.svg,/products/JE11
+JE12,Cargo Jeans,Jeans,jeans,Urbanloom,74,USD,olive,cotton,,,W30:3|W32:0|W34:4|W36:2,Cargo jeans. W32 is currently sold out.,images/JE12.svg,/products/JE12
+JE13,Light Wash Jeans,Jeans,jeans,Oakline,62,USD,blue,cotton,,nickel_free,W30:3|W32:5|W34:4|W36:2,Light wash straight jeans.,images/JE13.svg,/products/JE13
+JE14,Mystery Jeans,Jeans,jeans,Urbanloom,49,USD,denim,,,,W30:2|W32:2|W34:2|W36:2,Jeans with no fabric information recorded yet.,images/JE14.svg,/products/JE14
+JA01,Trail Shell Jacket,Jackets,jacket,Trailhaus,99,USD,black,nylon|polyester,waterproof,,S:3|M:5|L:4|XL:2,Lightweight waterproof shell with taped seams.,images/JA01.svg,/products/JA01
+JA02,Storm Rider Rain Jacket,Jackets,jacket,Northpeak,109,USD,navy,polyester,waterproof,,S:2|M:4|L:3|XL:2,Waterproof rain jacket with an adjustable hood.,images/JA02.svg,/products/JA02
+JA03,Storm Rider Rain Jacket Wool Lined,Jackets,jacket,Northpeak,114,USD,navy,polyester|wool,waterproof,,S:2|M:4|L:3|XL:2,Same jacket as the Storm Rider with a wool lining.,images/JA03.svg,/products/JA03
+JA04,Peak Hardshell,Jackets,jacket,Northpeak,139,USD,red,nylon,waterproof,,S:2|M:3|L:3|XL:1,"Mountain hardshell, fully waterproof.",images/JA04.svg,/products/JA04
+JA05,Coast Rain Mac,Jackets,jacket,Oakline,118,USD,green,polyester|cotton,waterproof,,S:1|M:3|L:2|XL:1,Long rain mac for city weather.,images/JA05.svg,/products/JA05
+JA06,Highland Wool Jacket,Jackets,jacket,Oakline,129,USD,grey,wool|polyester,,,S:1|M:2|L:2|XL:1,Warm wool jacket. Not waterproof.,images/JA06.svg,/products/JA06
+JA07,Fjord Wool Blend Shell,Jackets,jacket,Northpeak,115,USD,olive,wool|nylon,waterproof,,S:1|M:3|L:2|XL:1,Waterproof shell with a wool-blend face.,images/JA07.svg,/products/JA07
+JA08,Urban Bomber,Jackets,jacket,Urbanloom,89,USD,black,polyester,,,S:3|M:4|L:3|XL:2,"Classic bomber, not waterproof.",images/JA08.svg,/products/JA08
+JA09,Denim Trucker Jacket,Jackets,jacket,Stitchwell,95,USD,denim,cotton,,nickel_free,S:2|M:3|L:3|XL:1,Classic denim trucker jacket.,images/JA09.svg,/products/JA09
+JA10,Quilted Puffer,Jackets,jacket,Trailhaus,125,USD,purple,polyester,recycled,,S:2|M:3|L:3|XL:2,"Warm quilted puffer, recycled fill.",images/JA10.svg,/products/JA10
+JA11,Light Windbreaker,Jackets,jacket,Trailhaus,69,USD,blue,nylon,,,S:4|M:5|L:4|XL:2,"Packable windbreaker, shower resistant only.",images/JA11.svg,/products/JA11
+JA12,Alpine Rain Jacket,Jackets,jacket,Northpeak,105,USD,blue,polyester,waterproof,,S:3|M:0|L:2|XL:1,Waterproof rain jacket. Medium is currently sold out.,images/JA12.svg,/products/JA12
+JA13,Harbor Rain Jacket,Jackets,jacket,Oakline,121,USD,yellow,polyester,waterproof|recycled,,S:2|M:3|L:3|XL:2,Bright waterproof rain jacket in recycled polyester.,images/JA13.svg,/products/JA13
+JA14,Mystery Rain Jacket,Jackets,jacket,Urbanloom,95,USD,grey,,waterproof,,S:2|M:3|L:2|XL:1,Waterproof jacket with no fabric information recorded yet.,images/JA14.svg,/products/JA14
+SH01,City Sneaker,Shoes,shoes,Urbanloom,65,USD,white,canvas|rubber,,latex_free,EU40:4|EU42:6|EU44:5|EU45:2,White canvas sneaker.,images/SH01.svg,/products/SH01
+SH02,Trail Runner,Shoes,shoes,Trailhaus,110,USD,orange,mesh|rubber,,,EU40:2|EU42:4|EU44:4|EU45:2,Grippy trail running shoe.,images/SH02.svg,/products/SH02
+SH03,Waterproof Hiking Boot,Shoes,shoes,Northpeak,149,USD,brown,leather|rubber,waterproof,,EU40:1|EU42:3|EU44:3|EU45:1,Leather hiking boot with waterproof lining.,images/SH03.svg,/products/SH03
+SH04,Vegan Leather Sneaker,Shoes,shoes,Kindred,85,USD,black,synthetic_leather|rubber,vegan,latex_free,EU40:3|EU42:4|EU44:4|EU45:2,Smooth vegan leather sneaker.,images/SH04.svg,/products/SH04
+SH05,Wool Runner,Shoes,shoes,Oakline,98,USD,grey,wool|rubber,,,EU40:2|EU42:3|EU44:3|EU45:1,Soft merino wool runner.,images/SH05.svg,/products/SH05
+SH06,Canvas Slip-On,Shoes,shoes,Stitchwell,45,USD,navy,canvas|rubber,,,EU40:5|EU42:6|EU44:4|EU45:2,Easy canvas slip-on.,images/SH06.svg,/products/SH06
+SH07,Leather Derby Shoe,Shoes,shoes,Oakline,135,USD,brown,leather|rubber,,,EU40:1|EU42:2|EU44:2|EU45:1,Classic leather derby.,images/SH07.svg,/products/SH07
+SH08,Rain Boot,Shoes,shoes,Northpeak,59,USD,green,rubber,waterproof,,EU40:3|EU42:5|EU44:4|EU45:2,Tall waterproof rain boot in natural rubber.,images/SH08.svg,/products/SH08
+SH09,Latex Free Clog,Shoes,shoes,Kindred,55,USD,pink,foam,vegan,latex_free,EU40:3|EU42:4|EU44:4|EU45:2,Light foam clog with a latex-free sole.,images/SH09.svg,/products/SH09
+SH10,Everyday Trainer,Shoes,shoes,Stitchwell,72,USD,black,mesh|rubber,,,EU40:4|EU42:0|EU44:4|EU45:2,Everyday trainer. EU42 is currently sold out.,images/SH10.svg,/products/SH10
+SH11,Retro Court Shoe,Shoes,shoes,Urbanloom,79,USD,white,leather|rubber,,,EU40:3|EU42:4|EU44:4|EU45:2,Retro court style in leather.,images/SH11.svg,/products/SH11
+SH12,Recycled Knit Sneaker,Shoes,shoes,Kindred,89,USD,blue,polyester|rubber,recycled|vegan,latex_free,EU40:3|EU42:4|EU44:3|EU45:2,Sneaker with an upper knitted from recycled bottles.,images/SH12.svg,/products/SH12
+SH13,Budget Sneaker,Shoes,shoes,Stitchwell,35,USD,grey,canvas|rubber,,,EU40:6|EU42:8|EU44:6|EU45:4,Value everyday sneaker.,images/SH13.svg,/products/SH13
+SH14,Mystery Boot,Shoes,shoes,Urbanloom,90,USD,brown,,waterproof,,EU40:2|EU42:2|EU44:2|EU45:2,Boot with no material information recorded yet.,images/SH14.svg,/products/SH14
