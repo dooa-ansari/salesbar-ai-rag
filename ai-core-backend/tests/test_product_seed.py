@@ -43,22 +43,22 @@ CATALOG = {
         "Restriction": {"role": "restriction"},
     },
     "relationships": {
-        "IN_CATEGORY": {"label": "in category", "from": "Product", "to": "Category"},
+        "BELONGS_TO": {"label": "belongs to", "from": "Product", "to": "Category"},
         "IS_MADE_BY": {"label": "is made by", "from": "Product", "to": "Brand"},
-        "IS_MADE_OF": {"label": "is made of", "from": "Product", "to": "Material"},
-        "IS_AVAILABLE_IN_SIZE": {
-            "label": "is available in size",
+        "MADE_OF": {"label": "is made of", "from": "Product", "to": "Material"},
+        "AVAILABLE_IN": {
+            "label": "is available in",
             "from": "Product",
             "to": "Size",
         },
         "IS_FREE_FROM": {"label": "is free from", "from": "Product", "to": "Restriction"},
     },
     "columns": {
-        "category": {"node_type": "Category", "relationship": "IN_CATEGORY"},
+        "category": {"node_type": "Category", "relationship": "BELONGS_TO"},
         "brand": {"node_type": "Brand", "relationship": "IS_MADE_BY"},
         "materials": {
             "node_type": "Material",
-            "relationship": "IS_MADE_OF",
+            "relationship": "MADE_OF",
             "separator": "|",
             "as_property": "materials",
         },
@@ -70,10 +70,10 @@ CATALOG = {
         },
         "sizes_in_stock": {
             "node_type": "Size",
-            "relationship": "IS_AVAILABLE_IN_SIZE",
+            "relationship": "AVAILABLE_IN",
             "separator": "|",
             "counts": True,
-            "stock_property_prefix": "stock",
+            "edge_property": "stock",
         },
     },
 }
@@ -100,19 +100,32 @@ def test_builds_a_product_node_per_row():
     assert [n.data.name for n in products] == ["Everyday Tee", "Trail Shell", "Mystery Tee"]
 
 
-def test_price_is_float_and_stock_is_integer():
+def test_price_is_a_float_property():
     properties = _properties(_graph(), "product-ja01")
     assert properties["price"].type == "float"
     assert properties["price"].value == 89.5
-    assert properties["stock M"].type == "integer"
-    assert properties["stock M"].value == 2
 
 
-def test_sold_out_size_keeps_zero_stock_but_has_no_edge():
+def test_stock_lives_on_the_available_in_edge_as_an_integer():
     graph = _graph()
-    assert _properties(graph, "product-ts01")["stock M"].value == 0
-    size_edges = [e for e in graph.edges if e.source == "product-ts01" and e.key == "IS_AVAILABLE_IN_SIZE"]
-    assert {e.target for e in size_edges} == {"size-s"}
+    edge = next(e for e in graph.edges if e.source == "product-ja01" and e.target == "size-m")
+    assert edge.key == "AVAILABLE_IN"
+    assert [(p.name, p.type, p.value) for p in edge.properties] == [("stock", "integer", 2)]
+
+
+def test_sold_out_size_keeps_an_edge_with_zero_stock():
+    graph = _graph()
+    edges = {
+        e.target: e.properties[0].value
+        for e in graph.edges
+        if e.source == "product-ts01" and e.key == "AVAILABLE_IN"
+    }
+    assert edges == {"size-s": 6, "size-m": 0}
+
+
+def test_stock_is_not_duplicated_on_the_product():
+    properties = _properties(_graph(), "product-ts01")
+    assert not any(name.startswith("stock") for name in properties)
 
 
 def test_edges_carry_stable_key_and_display_label():
@@ -133,13 +146,13 @@ def test_shared_attributes_become_one_node_with_many_edges():
 def test_missing_materials_produce_no_material_edges():
     graph = _graph()
     keys = {e.key for e in graph.edges if e.source == "product-ts14"}
-    assert "IS_MADE_OF" not in keys
+    assert "MADE_OF" not in keys
     assert "materials" not in _properties(graph, "product-ts14")
 
 
 def test_multi_value_columns_produce_one_edge_each():
     graph = _graph()
-    made_of = [e for e in graph.edges if e.source == "product-ja01" and e.key == "IS_MADE_OF"]
+    made_of = [e for e in graph.edges if e.source == "product-ja01" and e.key == "MADE_OF"]
     assert {e.target for e in made_of} == {"material-nylon", "material-polyester"}
 
 

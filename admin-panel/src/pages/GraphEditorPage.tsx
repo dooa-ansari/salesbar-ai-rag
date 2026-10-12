@@ -327,6 +327,7 @@ function GraphEditorPage() {
         targetHandle,
         relationship: data?.relationship ?? '',
         key: data?.key,
+        properties: data?.properties,
         bend: data?.bend,
       })),
     }

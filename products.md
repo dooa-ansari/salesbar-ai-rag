@@ -13,6 +13,8 @@
 | brand | Brand name. |
 | price, currency | Number and currency code. |
 | colour | One colour word. |
+| fit | Cut: skinny, slim, regular, straight, relaxed, wide or oversized. Empty means not recorded (all shoes, and the mystery tee and jeans). |
+| season | summer, winter, spring_autumn or all_season. Empty means not recorded (SH14). |
 | materials | Fabrics, separated by `\|`. **Empty means unknown** (treated as unsafe for material exclusions). |
 | flags | Claims such as waterproof, organic_cotton, vegan, recycled, separated by `\|`. |
 | free_from | Safety claims such as nickel_free, latex_free, separated by `\|`. |

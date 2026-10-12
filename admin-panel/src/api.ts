@@ -10,6 +10,7 @@ export type GraphExportEdge = {
   target: string
   relationship: string
   key?: string | null
+  properties?: NodeProperty[]
   bend?: { x: number; y: number }
   sourceHandle?: string | null
   targetHandle?: string | null
@@ -67,6 +68,7 @@ export type RelationshipFact = {
   direction: 'outgoing' | 'incoming'
   otherId: string
   otherName: string
+  properties?: NodeProperty[]
 }
 
 export type SearchResultNode = {

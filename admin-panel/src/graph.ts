@@ -22,6 +22,7 @@ export type GraphNodeType = Node<GraphNodeData, 'graph'>
 export type GraphEdgeData = {
   relationship: string
   key?: string
+  properties?: NodeProperty[]
   // Offset from the edge's default midpoint, if the user dragged it.
   bend?: XYPosition
 }
@@ -46,6 +47,7 @@ export function toFlowEdge(edge: {
   target: string
   relationship: string
   key?: string | null
+  properties?: NodeProperty[]
   bend?: XYPosition
   sourceHandle?: string | null
   targetHandle?: string | null
@@ -64,7 +66,12 @@ export function toFlowEdge(edge: {
       height: 20,
       color: EDGE_COLOR,
     },
-    data: { relationship: edge.relationship, key: edge.key ?? undefined, bend: edge.bend },
+    data: {
+      relationship: edge.relationship,
+      key: edge.key ?? undefined,
+      properties: edge.properties,
+      bend: edge.bend,
+    },
   }
 }
 

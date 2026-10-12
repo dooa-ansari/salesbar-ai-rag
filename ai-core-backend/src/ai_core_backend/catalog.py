@@ -102,7 +102,7 @@ def _entities(row: dict, column: str, spec: dict) -> list[str]:
     value = row[column]
     separator = spec.get("separator")
     if spec.get("counts"):
-        return [label for label, count in _counts(value, separator) if count > 0]
+        return [label for label, _ in _counts(value, separator)]
     suffix = spec.get("strip_suffix")
     names = _split(value, separator)
     if suffix:
@@ -119,19 +119,20 @@ def _product_properties(catalog: dict, row: dict) -> list[NodeProperty]:
                 NodeProperty(name=spec["name"], type=spec.get("type", "string"), value=value)
             )
     for column, spec in catalog["columns"].items():
-        if spec.get("counts"):
-            prefix = spec.get("stock_property_prefix", "stock")
-            for label, count in _counts(row[column], spec.get("separator")):
-                properties.append(
-                    NodeProperty(name=f"{prefix} {label}", type="integer", value=count)
-                )
-        elif spec.get("as_property"):
+        if spec.get("as_property") and not spec.get("counts"):
             values = [_display(entity) for entity in _entities(row, column, spec)]
             if values:
                 properties.append(
                     NodeProperty(name=spec["as_property"], value=", ".join(values))
                 )
     return properties
+
+
+def _edge_properties(row: dict, column: str, spec: dict, entity: str) -> list[NodeProperty]:
+    if not spec.get("counts") or not spec.get("edge_property"):
+        return []
+    counts = dict(_counts(row[column], spec.get("separator")))
+    return [NodeProperty(name=spec["edge_property"], type="integer", value=counts[entity])]
 
 
 def _node(node_id, name, node_type, x, y, description=None, properties=None) -> GraphNode:
@@ -200,6 +201,7 @@ def build_graph(catalog: dict, rows: list[dict]) -> SaveGraphRequest:
                         target=entity_ids[(spec["node_type"], name)],
                         relationship=relationship["label"],
                         key=spec["relationship"],
+                        properties=_edge_properties(row, column, spec, name),
                     )
                 )
 

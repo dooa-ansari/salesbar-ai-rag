@@ -144,6 +144,7 @@ async def _attach_relationships(
                 direction="outgoing",
                 otherId=row["toId"],
                 otherName=row["toName"],
+                properties=row.get("properties", []),
             )
         )
         by_node[row["toId"]].append(
@@ -152,6 +153,7 @@ async def _attach_relationships(
                 direction="incoming",
                 otherId=row["fromId"],
                 otherName=row["fromName"],
+                properties=row.get("properties", []),
             )
         )
     for result in results:
@@ -172,10 +174,12 @@ def _format_context(results: list[SearchResultNode]) -> str:
                 line += f" [{props}]"
             lines.append(line)
         for rel in result.relationships:
+            detail = ", ".join(f"{p.name}={p.value}" for p in rel.properties)
+            suffix = f" ({detail})" if detail else ""
             if rel.direction == "outgoing":
-                lines.append(f"  {result.name} {rel.relationship} {rel.otherName}.")
+                lines.append(f"  {result.name} {rel.relationship} {rel.otherName}{suffix}.")
             else:
-                lines.append(f"  {rel.otherName} {rel.relationship} {result.name}.")
+                lines.append(f"  {rel.otherName} {rel.relationship} {result.name}{suffix}.")
     return "\n".join(lines)
 
 

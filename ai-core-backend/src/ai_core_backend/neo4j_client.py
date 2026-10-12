@@ -94,6 +94,7 @@ def _edge_params(edge: GraphEdge) -> dict:
         "target": edge.target,
         "relationship": edge.relationship,
         "key": edge.key,
+        "propertiesJson": json.dumps([p.model_dump() for p in edge.properties]),
         "bendX": edge.bend.x if edge.bend else None,
         "bendY": edge.bend.y if edge.bend else None,
         "sourceHandle": edge.sourceHandle,
@@ -167,6 +168,7 @@ async def _save_graph_tx(
         CREATE (source)-[r:RELATES_TO {id: edge.id}]->(target)
         SET r.relationship = edge.relationship,
             r.key = edge.key,
+            r.propertiesJson = edge.propertiesJson,
             r.bendX = edge.bendX,
             r.bendY = edge.bendY,
             r.sourceHandle = edge.sourceHandle,
@@ -288,6 +290,7 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
                target.id AS target,
                r.relationship AS relationship,
                r.key AS key,
+               r.propertiesJson AS propertiesJson,
                r.bendX AS bendX,
                r.bendY AS bendY,
                r.sourceHandle AS sourceHandle,
@@ -302,6 +305,10 @@ async def _get_graph_tx(tx, graph_id: str) -> NamedGraphPayload | None:
             target=record["target"],
             relationship=record["relationship"] or "",
             key=record["key"],
+            properties=[
+                NodeProperty(**item)
+                for item in json.loads(record["propertiesJson"] or "[]")
+            ],
             bend=(
                 Position(x=record["bendX"], y=record["bendY"])
                 if record["bendX"] is not None and record["bendY"] is not None
@@ -453,6 +460,7 @@ async def _get_node_relationships_tx(
         WHERE a.id IN $nodeIds OR b.id IN $nodeIds
         RETURN a.id AS fromId, a.name AS fromName,
                r.relationship AS relationship,
+               r.propertiesJson AS propertiesJson,
                b.id AS toId, b.name AS toName
         """,
         graphId=graph_id,
@@ -463,6 +471,7 @@ async def _get_node_relationships_tx(
             "fromId": record["fromId"],
             "fromName": record["fromName"],
             "relationship": record["relationship"],
+            "properties": json.loads(record["propertiesJson"] or "[]"),
             "toId": record["toId"],
             "toName": record["toName"],
         }

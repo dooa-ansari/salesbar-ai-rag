@@ -79,6 +79,7 @@ class GraphEdge(BaseModel):
     target: str = Field(max_length=_SHORT_TEXT)
     relationship: str = Field(default="", max_length=_SHORT_TEXT)
     key: str | None = Field(default=None, max_length=_SHORT_TEXT)
+    properties: list[NodeProperty] = Field(default=[], max_length=50)
     bend: Position | None = None
     # Which node handle the edge is attached to (e.g. "+" vs the "↑" reverse-link).
     sourceHandle: str | None = Field(default=None, max_length=_SHORT_TEXT)
@@ -163,6 +164,7 @@ class RelationshipFact(BaseModel):
     direction: Literal["outgoing", "incoming"]
     otherId: str
     otherName: str
+    properties: list[NodeProperty] = []
 
 
 class SearchResultNode(BaseModel):

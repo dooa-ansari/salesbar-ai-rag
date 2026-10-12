@@ -23,32 +23,38 @@ node_types:
   Material: {role: attribute}
   Colour: {role: attribute}
   Size: {role: attribute}
+  Fit: {role: attribute}
+  Season: {role: attribute}
   Feature: {role: attribute}
   Restriction: {role: restriction}
 
 relationships:
-  IN_CATEGORY: {label: in category, from: Product, to: Category}
+  BELONGS_TO: {label: belongs to, from: Product, to: Category}
   IS_MADE_BY: {label: is made by, from: Product, to: Brand}
-  IS_MADE_OF: {label: is made of, from: Product, to: Material}
+  MADE_OF: {label: is made of, from: Product, to: Material}
   COMES_IN: {label: comes in, from: Product, to: Colour}
-  IS_AVAILABLE_IN_SIZE: {label: is available in size, from: Product, to: Size}
+  AVAILABLE_IN: {label: is available in, from: Product, to: Size}
+  HAS_FIT: {label: has fit, from: Product, to: Fit}
+  SUITED_TO: {label: is suited to, from: Product, to: Season}
   HAS_FEATURE: {label: has feature, from: Product, to: Feature}
   IS_FREE_FROM: {label: is free from, from: Product, to: Restriction}
 
 columns:
-  category: {node_type: Category, relationship: IN_CATEGORY}
+  category: {node_type: Category, relationship: BELONGS_TO}
   brand: {node_type: Brand, relationship: IS_MADE_BY}
-  materials: {node_type: Material, relationship: IS_MADE_OF, separator: "|", as_property: materials}
+  materials: {node_type: Material, relationship: MADE_OF, separator: "|", as_property: materials}
   colour: {node_type: Colour, relationship: COMES_IN, as_property: colour}
+  fit: {node_type: Fit, relationship: HAS_FIT, as_property: fit}
+  season: {node_type: Season, relationship: SUITED_TO, as_property: season}
   flags: {node_type: Feature, relationship: HAS_FEATURE, separator: "|", as_property: flags}
   free_from: {node_type: Restriction, relationship: IS_FREE_FROM, separator: "|", strip_suffix: _free, as_property: free from}
-  sizes_in_stock: {node_type: Size, relationship: IS_AVAILABLE_IN_SIZE, separator: "|", counts: true, stock_property_prefix: stock}
+  sizes_in_stock: {node_type: Size, relationship: AVAILABLE_IN, separator: "|", counts: true, edge_property: stock}
 
 constraints:
   safety:
     node_types: [Material, Restriction]
   soft:
-    node_types: [Size, Colour, Brand, Feature]
+    node_types: [Size, Colour, Brand, Fit, Season, Feature]
     properties: [price]
 
 synonyms:
@@ -68,3 +74,15 @@ synonyms:
     require: {node_type: Feature, value: recycled}
   - phrases: [vegan]
     require: {node_type: Feature, value: vegan}
+  - phrases: [slim fit, slim]
+    require: {node_type: Fit, value: slim}
+  - phrases: [skinny, skinny fit]
+    require: {node_type: Fit, value: skinny}
+  - phrases: [relaxed fit, relaxed, loose fit]
+    require: {node_type: Fit, value: relaxed}
+  - phrases: [oversized, boxy]
+    require: {node_type: Fit, value: oversized}
+  - phrases: [summer, hot weather]
+    require: {node_type: Season, value: summer}
+  - phrases: [winter, cold weather]
+    require: {node_type: Season, value: winter}

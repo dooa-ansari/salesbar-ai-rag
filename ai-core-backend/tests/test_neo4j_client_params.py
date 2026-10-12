@@ -93,3 +93,24 @@ def test_node_params_keeps_numeric_properties_as_numbers():
         {"name": "stock", "type": "integer", "value": 12},
         {"name": "price", "type": "float", "value": 9.99},
     ]
+
+
+def test_edge_params_encodes_key_and_numeric_properties():
+    edge = GraphEdge(
+        id="e1",
+        source="a",
+        target="b",
+        relationship="is available in",
+        key="AVAILABLE_IN",
+        properties=[NodeProperty(name="stock", type="integer", value="0")],
+    )
+    params = _edge_params(edge)
+    assert params["key"] == "AVAILABLE_IN"
+    assert json.loads(params["propertiesJson"]) == [
+        {"name": "stock", "type": "integer", "value": 0}
+    ]
+
+
+def test_edge_params_without_properties_encodes_an_empty_list():
+    edge = GraphEdge(id="e1", source="a", target="b", relationship="knows")
+    assert json.loads(_edge_params(edge)["propertiesJson"]) == []
