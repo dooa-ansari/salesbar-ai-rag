@@ -104,6 +104,10 @@ npm run dev
 # Backend — pytest, fully mocked (no real Neo4j/OpenRouter needed)
 cd ai-core-backend && uv run pytest
 
+# Backend integration tests — run Cypher against a throwaway Neo4j
+docker run -d --name salesbar-test-neo4j -p 17687:7687 -e NEO4J_AUTH=neo4j/testpassword neo4j:5-community
+cd ai-core-backend && TEST_NEO4J_URI=bolt://localhost:17687 uv run pytest tests/integration
+
 # Admin panel — Vitest unit tests (pure logic, no DOM needed)
 cd admin-panel && npm run test
 

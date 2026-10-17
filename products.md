@@ -26,7 +26,7 @@
 
 - Wool: TS04, TS12, JE06, JA03, JA06, JA07, SH05.
 - Sold out in a popular size: TS10 (M), JE10 (all), JE12 (W32), JA12 (M), SH10 (EU42).
-- Just over a common budget: JA12 ($121, over $120), JA04 ($139).
+- Just over a common budget: JA13 ($121, over $120), JA04 ($139).
 - Near-identical pairs with different materials: TS02/TS03 (organic vs blend), JA02/JA03 (plain vs wool lining).
 - Missing material data: TS14, JE14, JA14, SH14.
 

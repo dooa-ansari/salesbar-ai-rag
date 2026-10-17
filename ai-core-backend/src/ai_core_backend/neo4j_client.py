@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 from neo4j import AsyncDriver, AsyncGraphDatabase
 
+from ai_core_backend.numeric_properties import NUMERIC_PREFIX, numeric_key, numeric_values
 from ai_core_backend.openrouter_client import EMBEDDING_DIMENSIONS
 from ai_core_backend.schemas import (
     GraphEdge,
@@ -97,6 +98,7 @@ def _node_params(node: GraphNode) -> dict:
         # Neo4j properties can't hold a list of maps, so the name/value pairs
         # are stored as a JSON string and decoded again on the way out.
         "propertiesJson": json.dumps([p.model_dump() for p in node.data.properties]),
+        "numericProps": numeric_values(node.data.properties),
     }
 
 
@@ -158,6 +160,10 @@ async def _save_graph_tx(
         MATCH (g:SavedGraph {id: $graphId})
         UNWIND $nodes AS node
         MERGE (n:GraphNode {catalogId: $graphId, id: node.id})
+        WITH g, n, node,
+             [k IN keys(n) WHERE k STARTS WITH $numericPrefix
+                                 AND NOT k IN keys(node.numericProps)] AS stale
+        FOREACH (k IN stale | SET n[k] = null)
         SET n.reactFlowType = node.reactFlowType,
             n.positionX = node.positionX,
             n.positionY = node.positionY,
@@ -165,9 +171,11 @@ async def _save_graph_tx(
             n.entityType = node.entityType,
             n.description = node.description,
             n.propertiesJson = node.propertiesJson
+        SET n += node.numericProps
         MERGE (g)-[:HAS_NODE]->(n)
         """,
         graphId=graph_id,
+        numericPrefix=NUMERIC_PREFIX,
         nodes=nodes,
     )
 
@@ -511,4 +519,65 @@ async def get_node_relationships(graph_id: str, node_ids: list[str]) -> list[dic
     async with get_driver().session() as session:
         return await session.execute_read(
             _get_node_relationships_tx, graph_id, node_ids
+        )
+
+
+PRODUCT_TYPE = "Product"
+CATEGORY_RELATIONSHIP_KEY = "BELONGS_TO"
+PRICE_PROPERTY = "price"
+PRODUCT_SORTS = {"price_asc": "ASC", "price_desc": "DESC"}
+
+
+async def _find_products_tx(
+    tx,
+    graph_id: str,
+    category: str | None,
+    max_price: float | None,
+    sort: str,
+    limit: int,
+) -> list[dict]:
+    direction = PRODUCT_SORTS[sort]
+    records = await tx.run(
+        f"""
+        MATCH (p:GraphNode {{catalogId: $graphId, entityType: $productType}})
+              -[:RELATES_TO {{key: $categoryKey}}]->
+              (c:GraphNode {{catalogId: $graphId}})
+        WHERE ($category IS NULL OR toLower(c.name) = toLower($category))
+          AND ($maxPrice IS NULL OR p[$priceKey] < $maxPrice)
+        RETURN p.id AS id, p.name AS name, c.name AS category, p[$priceKey] AS price
+        ORDER BY price {direction}, name
+        LIMIT $limit
+        """,
+        graphId=graph_id,
+        productType=PRODUCT_TYPE,
+        categoryKey=CATEGORY_RELATIONSHIP_KEY,
+        priceKey=numeric_key(PRICE_PROPERTY),
+        category=category,
+        maxPrice=max_price,
+        limit=limit,
+    )
+    return [
+        {
+            "id": record["id"],
+            "name": record["name"],
+            "category": record["category"],
+            "price": record["price"],
+        }
+        async for record in records
+    ]
+
+
+async def find_products(
+    graph_id: str,
+    *,
+    category: str | None = None,
+    max_price: float | None = None,
+    sort: str = "price_asc",
+    limit: int = 50,
+) -> list[dict]:
+    if sort not in PRODUCT_SORTS:
+        raise ValueError(f"sort must be one of {sorted(PRODUCT_SORTS)}")
+    async with get_driver().session() as session:
+        return await session.execute_read(
+            _find_products_tx, graph_id, category, max_price, sort, limit
         )
