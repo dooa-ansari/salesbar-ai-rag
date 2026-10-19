@@ -45,3 +45,16 @@ def test_numeric_value_keeps_its_python_type():
 def test_overlong_string_property_is_rejected():
     with pytest.raises(ValidationError):
         NodeProperty(name="notes", value="x" * 2_001)
+
+
+def test_graph_text_can_hold_a_full_catalog_description():
+    from ai_core_backend.schemas import SaveTextRequest
+
+    assert len(SaveTextRequest(text="x" * 60_000).text) == 60_000
+
+
+def test_graph_text_still_has_an_upper_bound():
+    from ai_core_backend.schemas import SaveTextRequest
+
+    with pytest.raises(ValidationError):
+        SaveTextRequest(text="x" * 1_000_001)

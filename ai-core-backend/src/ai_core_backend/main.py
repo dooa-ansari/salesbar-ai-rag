@@ -6,11 +6,12 @@ from fastapi import FastAPI, HTTPException
 
 logger = logging.getLogger(__name__)
 
-from ai_core_backend import neo4j_client, openrouter_client
+from ai_core_backend import neo4j_client, openrouter_client, shop_search
 from ai_core_backend.schemas import (
     GenerateEmbeddingsRequest,
     GenerateEmbeddingsResponse,
     NamedGraphPayload,
+    ProductSummary,
     RelationshipFact,
     SaveGraphRequest,
     SaveGraphResponse,
@@ -20,8 +21,10 @@ from ai_core_backend.schemas import (
     SearchRequest,
     SearchResponse,
     SearchResultNode,
+    ShopSearchRequest,
+    ShopSearchResponse,
 )
-from ai_core_backend.seed_data import SEED_GRAPHS
+from ai_core_backend.seed_data import SEED_CATALOG, SEED_GRAPHS
 
 
 @asynccontextmanager
@@ -89,6 +92,44 @@ async def get_graph(graph_id: str):
     if graph is None:
         raise HTTPException(status_code=404, detail="Graph not found")
     return graph
+
+
+@app.get("/graphs/{graph_id}/products", response_model=list[ProductSummary])
+async def list_products(graph_id: str):
+    products = await neo4j_client.list_products(graph_id)
+    if products is None:
+        raise HTTPException(status_code=404, detail="Graph not found")
+    return products
+
+
+def _shop_config(graph_name: str | None) -> shop_search.ShopConfig:
+    if SEED_CATALOG and SEED_CATALOG.get("name") == graph_name:
+        return shop_search.config_from_catalog(SEED_CATALOG)
+    return shop_search.ShopConfig()
+
+
+@app.post("/graphs/{graph_id}/shop-search", response_model=ShopSearchResponse)
+async def shop_search_graph(graph_id: str, payload: ShopSearchRequest):
+    query = payload.query.strip()
+    if not query:
+        raise HTTPException(status_code=422, detail="Query is required")
+
+    graphs = await neo4j_client.list_graphs()
+    name = next((graph.name for graph in graphs if graph.id == graph_id), None)
+    if name is None:
+        raise HTTPException(status_code=404, detail="Graph not found")
+
+    try:
+        result = await shop_search.search(graph_id, query, _shop_config(name))
+    except shop_search.ShopSearchError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+    return ShopSearchResponse(
+        query=query,
+        constraints=result.constraints,
+        message=result.message,
+        results=result.results,
+        ruledOut=result.ruled_out,
+    )
 
 
 @app.put("/graphs/{graph_id}/text", response_model=SaveTextResponse)
@@ -196,7 +237,7 @@ async def search_graph(graph_id: str, payload: SearchRequest):
         raise HTTPException(status_code=502, detail=str(error)) from error
 
     results = await neo4j_client.search_graph_nodes(
-        graph_id, query_embedding, payload.limit
+        graph_id, query_embedding, payload.limit, payload.nodeType
     )
     if results is None:
         raise HTTPException(status_code=404, detail="Graph not found")

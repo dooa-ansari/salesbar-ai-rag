@@ -53,6 +53,10 @@ columns:
 constraints:
   safety:
     node_types: [Material, Restriction]
+  near:
+    node_types: [Size]
+    properties: [price]
+    price_tolerance: 0.1
   soft:
     node_types: [Size, Colour, Brand, Fit, Season, Feature]
     properties: [price]

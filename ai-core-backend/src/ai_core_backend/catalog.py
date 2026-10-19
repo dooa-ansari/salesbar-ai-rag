@@ -53,7 +53,7 @@ def _validate(catalog: dict) -> None:
             raise ValueError(f"column {column} references unknown relationship {spec['relationship']}")
 
     constraints = catalog.get("constraints") or {}
-    for kind in ("safety", "soft"):
+    for kind in ("safety", "near", "soft"):
         for node_type in (constraints.get(kind) or {}).get("node_types", []):
             if node_type not in node_types:
                 raise ValueError(f"{kind} constraint references unknown node type {node_type}")

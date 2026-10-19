@@ -60,10 +60,11 @@ Requires Docker and Docker Compose.
 git clone https://github.com/dooa-ansari/salesbar-ai-rag.git
 cd salesbar-ai-rag
 
-# Create a .env file next to docker-compose.yml with at least:
-#   NEO4J_PASSWORD=<a real password>   (required — see Security below)
-#   OPENROUTER_API_KEY=<your key>      (optional: https://openrouter.ai/keys;
-#                                       needed for "Generate embeddings"/search)
+cp .env.example .env
+# Open .env and set a real NEO4J_PASSWORD (required — see Security below).
+# OPENROUTER_API_KEY is optional: get a free key at https://openrouter.ai/keys
+# if you want "Generate embeddings"/search to work; the rest of the app
+# works fine without one.
 
 docker compose up --build
 ```
@@ -71,6 +72,7 @@ docker compose up --build
 Then open:
 
 - **Admin panel**: http://localhost:3000
+- **Salesbar search**: http://localhost:3001
 - **AI core backend API**: http://localhost:8000 (docs at `/docs`)
 - **Neo4j Browser**: http://localhost:7474
 
@@ -158,7 +160,7 @@ at the top of `docker-compose.yml` for details.
 
 ## Environment variables
 
-Set in `.env` (gitignored):
+Set in `.env` (copy from `.env.example`; `.env` is gitignored):
 
 | Variable | Default | Notes |
 |---|---|---|
@@ -169,6 +171,7 @@ Set in `.env` (gitignored):
 | `EMBEDDING_DIMENSIONS` | `1024` | Output size of the embedding model; sets the Neo4j vector index size. If you change it on an existing database, drop the vector index and regenerate embeddings. |
 | `BACKEND_PORT` | `8000` | Host port for the AI core backend API. |
 | `FRONTEND_PORT` | `3000` | Host port for the admin panel. |
+| `SALESBAR_PORT` | `3001` | Host port for the Salesbar search frontend. |
 | `NEO4J_HTTP_PORT` | `7474` | Host port for the Neo4j Browser. |
 | `NEO4J_BOLT_PORT` | `7687` | Host port for the Bolt protocol. |
 

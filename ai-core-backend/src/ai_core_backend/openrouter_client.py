@@ -84,12 +84,24 @@ async def generate_answer(query: str, context: str) -> str:
         },
     ]
 
+    return await chat(messages)
+
+
+async def chat(messages: list[dict], temperature: float | None = None) -> str:
+    """One chat completion; returns the assistant message text."""
+    if not OPENROUTER_API_KEY:
+        raise OpenRouterError("OPENROUTER_API_KEY is not set on the backend")
+
+    payload = {"model": CHAT_MODEL, "messages": messages}
+    if temperature is not None:
+        payload["temperature"] = temperature
+
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
             response = await client.post(
                 f"{OPENROUTER_BASE_URL}/chat/completions",
                 headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
-                json={"model": CHAT_MODEL, "messages": messages},
+                json=payload,
             )
         except httpx.HTTPError as error:
             raise OpenRouterError(f"Failed to reach OpenRouter: {error}") from error

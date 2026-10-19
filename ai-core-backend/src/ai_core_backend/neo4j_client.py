@@ -21,6 +21,8 @@ from ai_core_backend.schemas import (
     NamedGraphPayload,
     NodeProperty,
     Position,
+    ProductAttribute,
+    ProductSummary,
     SaveGraphRequest,
     SavedGraphSummary,
     SearchResultNode,
@@ -421,7 +423,11 @@ async def save_node_embeddings(
 
 
 async def _search_graph_nodes_tx(
-    tx, graph_id: str, query_embedding: list[float], limit: int
+    tx,
+    graph_id: str,
+    query_embedding: list[float],
+    limit: int,
+    node_type: str | None = None,
 ) -> list[SearchResultNode] | None:
     exists = await (
         await tx.run(
@@ -438,6 +444,7 @@ async def _search_graph_nodes_tx(
         CALL db.index.vector.queryNodes($indexName, $overfetch, $queryEmbedding)
         YIELD node, score
         WHERE node.catalogId = $graphId
+          AND ($nodeType IS NULL OR node.entityType = $nodeType)
         RETURN node.id AS id,
                node.catalogId AS catalogId,
                node.name AS name,
@@ -453,6 +460,7 @@ async def _search_graph_nodes_tx(
         overfetch=overfetch,
         queryEmbedding=query_embedding,
         graphId=graph_id,
+        nodeType=node_type,
         limit=limit,
     )
     return [
@@ -474,12 +482,15 @@ async def _search_graph_nodes_tx(
 
 
 async def search_graph_nodes(
-    graph_id: str, query_embedding: list[float], limit: int = 5
+    graph_id: str,
+    query_embedding: list[float],
+    limit: int = 5,
+    node_type: str | None = None,
 ) -> list[SearchResultNode] | None:
     """Returns None if the graph id doesn't exist, so the caller can 404."""
     async with get_driver().session() as session:
         return await session.execute_read(
-            _search_graph_nodes_tx, graph_id, query_embedding, limit
+            _search_graph_nodes_tx, graph_id, query_embedding, limit, node_type
         )
 
 
@@ -526,6 +537,139 @@ PRODUCT_TYPE = "Product"
 CATEGORY_RELATIONSHIP_KEY = "BELONGS_TO"
 PRICE_PROPERTY = "price"
 PRODUCT_SORTS = {"price_asc": "ASC", "price_desc": "DESC"}
+
+
+async def _catalog_vocabulary_tx(tx, graph_id: str, product_type: str) -> list[dict]:
+    records = await tx.run(
+        """
+        MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(n:GraphNode)
+        WHERE n.entityType <> $productType
+        RETURN n.id AS id, n.name AS name, n.entityType AS type
+        ORDER BY type, name
+        """,
+        graphId=graph_id,
+        productType=product_type,
+    )
+    return [{"id": r["id"], "name": r["name"], "type": r["type"]} async for r in records]
+
+
+async def catalog_vocabulary(graph_id: str, product_type: str = PRODUCT_TYPE) -> list[dict]:
+    """Every non-product node of a catalog: the values a shopper can ask for."""
+    async with get_driver().session() as session:
+        return await session.execute_read(_catalog_vocabulary_tx, graph_id, product_type)
+
+
+async def _product_matches_tx(
+    tx, graph_id: str, product_type: str, node_ids: list[str], keys: list[str], price_property: str | None
+) -> list[dict]:
+    records = await tx.run(
+        """
+        MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(p:GraphNode {entityType: $productType})
+        OPTIONAL MATCH (p)-[r:RELATES_TO]->(b:GraphNode)<-[:HAS_NODE]-(g)
+        WHERE b.id IN $nodeIds
+        WITH g, p, collect(CASE WHEN b IS NULL THEN null ELSE {id: b.id, propertiesJson: r.propertiesJson} END) AS hits
+        RETURN p.id AS id,
+               p[$priceKey] AS price,
+               hits,
+               [k IN $keys WHERE EXISTS { (p)-[:RELATES_TO {key: k}]->(:GraphNode)<-[:HAS_NODE]-(g) }] AS keys
+        """,
+        graphId=graph_id,
+        productType=product_type,
+        nodeIds=node_ids,
+        keys=keys,
+        priceKey=numeric_key(price_property) if price_property else "",
+    )
+    return [
+        {
+            "id": record["id"],
+            "price": record["price"],
+            "hits": {
+                hit["id"]: [NodeProperty(**item) for item in json.loads(hit["propertiesJson"] or "[]")]
+                for hit in record["hits"]
+            },
+            "keys": set(record["keys"]),
+        }
+        async for record in records
+    ]
+
+
+async def product_matches(
+    graph_id: str,
+    node_ids: list[str],
+    keys: list[str],
+    price_property: str | None,
+    product_type: str = PRODUCT_TYPE,
+) -> list[dict]:
+    """For every product: which of `node_ids` it links to (with the edge's
+    properties), which relationship `keys` it has at all, and its price."""
+    async with get_driver().session() as session:
+        return await session.execute_read(
+            _product_matches_tx, graph_id, product_type, node_ids, keys, price_property
+        )
+
+
+async def _list_products_tx(tx, graph_id: str) -> list[ProductSummary] | None:
+    exists = await (
+        await tx.run(
+            "MATCH (g:SavedGraph {id: $graphId}) RETURN g.id AS id", graphId=graph_id
+        )
+    ).single()
+    if exists is None:
+        return None
+
+    records = await tx.run(
+        """
+        MATCH (g:SavedGraph {id: $graphId})-[:HAS_NODE]->(p:GraphNode {entityType: $productType})
+        OPTIONAL MATCH (p)-[r:RELATES_TO]->(b:GraphNode)<-[:HAS_NODE]-(g)
+        WITH p, collect(CASE WHEN r IS NULL THEN null ELSE {
+            key: r.key,
+            relationship: r.relationship,
+            name: b.name,
+            propertiesJson: r.propertiesJson
+        } END) AS attributes
+        RETURN p.id AS id,
+               p.catalogId AS catalogId,
+               p.name AS name,
+               p.description AS description,
+               p.propertiesJson AS propertiesJson,
+               attributes
+        ORDER BY p.name
+        """,
+        graphId=graph_id,
+        productType=PRODUCT_TYPE,
+    )
+    return [
+        ProductSummary(
+            id=record["id"],
+            catalogId=record["catalogId"],
+            name=record["name"],
+            description=record["description"],
+            properties=[
+                NodeProperty(**item)
+                for item in json.loads(record["propertiesJson"] or "[]")
+            ],
+            attributes=[
+                ProductAttribute(
+                    key=attribute["key"],
+                    relationship=attribute["relationship"],
+                    name=attribute["name"],
+                    properties=[
+                        NodeProperty(**item)
+                        for item in json.loads(attribute["propertiesJson"] or "[]")
+                    ],
+                )
+                for attribute in record["attributes"]
+            ],
+        )
+        async for record in records
+    ]
+
+
+async def list_products(graph_id: str) -> list[ProductSummary] | None:
+    """Every Product node of a catalog with its outgoing edges. None if the
+    graph id doesn't exist."""
+    async with get_driver().session() as session:
+        return await session.execute_read(_list_products_tx, graph_id)
 
 
 async def _find_products_tx(

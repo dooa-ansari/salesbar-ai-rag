@@ -8,13 +8,17 @@ DEFAULT_CATALOG = Path(__file__).resolve().parents[3] / "data" / "clothes" / "ca
 CATALOG_PATH = Path(os.environ.get("SEED_CATALOG", DEFAULT_CATALOG))
 
 
-def _load_seed_graphs() -> list[SaveGraphRequest]:
+def _load_seed_catalog() -> dict | None:
     if not CATALOG_PATH.is_file():
-        return []
-    catalog = load_catalog(CATALOG_PATH)
-    if not source_exists(catalog):
+        return None
+    return load_catalog(CATALOG_PATH)
+
+
+def _load_seed_graphs(catalog: dict | None) -> list[SaveGraphRequest]:
+    if catalog is None or not source_exists(catalog):
         return []
     return [build_graph(catalog, load_rows(catalog))]
 
 
-SEED_GRAPHS: list[SaveGraphRequest] = _load_seed_graphs()
+SEED_CATALOG: dict | None = _load_seed_catalog()
+SEED_GRAPHS: list[SaveGraphRequest] = _load_seed_graphs(SEED_CATALOG)

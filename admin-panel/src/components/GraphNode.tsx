@@ -21,10 +21,13 @@ const CHILD_GAP_Y = 160
 const CHILD_SPACING_X = 340
 
 // `nodrag`/`nowheel` stop React Flow intercepting field interactions.
-const inputClass =
-  'nodrag nowheel w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-800 ' +
+const fieldClass =
+  'nodrag nowheel rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-800 ' +
   'placeholder:text-gray-400 focus:border-primary-500 focus:outline-none ' +
   'aria-invalid:border-red-500'
+const inputClass = `${fieldClass} w-full`
+const propertyInputClass = `${fieldClass} min-w-0 flex-1`
+const propertyTypeClass = `${fieldClass} w-[5.25rem] shrink-0 px-1`
 
 function GraphNode({ id, data }: NodeProps<GraphNodeType>) {
   const { getNode, getNodes, getEdges, addNodes, addEdges, updateNodeData, deleteElements } =
@@ -151,14 +154,14 @@ function GraphNode({ id, data }: NodeProps<GraphNodeType>) {
           {data.properties.map((property, index) => (
             <div key={index} className="flex items-center gap-1">
               <input
-                className={inputClass}
+                className={propertyInputClass}
                 value={property.name}
                 onChange={(e) => updateProperty(index, { name: e.target.value })}
                 placeholder="Name"
                 aria-label={`Property ${index + 1} name`}
               />
               <select
-                className={`${inputClass} w-auto shrink-0`}
+                className={propertyTypeClass}
                 value={property.type ?? 'string'}
                 onChange={(e) =>
                   changePropertyType(index, e.target.value as PropertyType)
@@ -170,7 +173,7 @@ function GraphNode({ id, data }: NodeProps<GraphNodeType>) {
                 <option value="float">Decimal</option>
               </select>
               <input
-                className={inputClass}
+                className={propertyInputClass}
                 type={property.type && property.type !== 'string' ? 'number' : 'text'}
                 step={property.type === 'integer' ? 1 : 'any'}
                 value={property.value}

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 # stuff megabytes of text into Neo4j or an OpenRouter call.
 _SHORT_TEXT = 200
 _MEDIUM_TEXT = 2_000
-_LONG_TEXT = 20_000
+_LONG_TEXT = 1_000_000
 
 
 class Position(BaseModel):
@@ -156,6 +156,8 @@ class SearchRequest(BaseModel):
     # overfetch (search_graph_nodes multiplies this by 10) or a negative
     # Cypher LIMIT, which Neo4j rejects with an unhandled error.
     limit: int = Field(default=5, ge=1, le=50)
+    # Restricts matches to one node type, e.g. "Product" for a storefront.
+    nodeType: str | None = Field(default=None, max_length=_SHORT_TEXT)
 
 
 class RelationshipFact(BaseModel):
@@ -181,6 +183,50 @@ class SearchResultNode(BaseModel):
     embeddingText: str | None = None
     # This node's edges, fetched fresh from Neo4j for this search.
     relationships: list[RelationshipFact] = []
+
+
+class ProductAttribute(BaseModel):
+    """One outgoing edge of a product, e.g. BELONGS_TO -> Jackets."""
+
+    key: str | None = None
+    relationship: str
+    name: str
+    properties: list[NodeProperty] = []
+
+
+class ProductSummary(BaseModel):
+    id: str
+    catalogId: str | None = None
+    name: str
+    description: str | None = None
+    properties: list[NodeProperty] = []
+    attributes: list[ProductAttribute] = []
+
+
+class ShopSearchRequest(BaseModel):
+    query: str = Field(max_length=_MEDIUM_TEXT)
+
+
+class ShopConstraint(BaseModel):
+    """One thing the shopper asked for, as the parser understood it."""
+
+    label: str
+    kind: Literal["required", "safety", "near", "soft"]
+
+
+class ShopMatch(BaseModel):
+    productId: str
+    match: Literal["exact", "near", "alternative", "related", "ruled-out"]
+    reasons: list[str] = []
+    score: float = 0.0
+
+
+class ShopSearchResponse(BaseModel):
+    query: str
+    constraints: list[ShopConstraint] = []
+    message: str
+    results: list[ShopMatch] = []
+    ruledOut: list[ShopMatch] = []
 
 
 class SearchResponse(BaseModel):

@@ -18,7 +18,7 @@ function ResultCard({ result }: { result: SearchResultNode }) {
       </div>
       <div className="mt-0.5 text-xs text-gray-500">{result.type}</div>
       {result.description && (
-        <p className="mt-1 text-xs text-gray-600">{result.description}</p>
+        <div className="mt-1 text-sm text-gray-700">{result.description}</div>
       )}
       {result.properties.length > 0 && (
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 border-t border-secondary-100 pt-1.5 text-xs">
